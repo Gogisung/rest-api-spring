@@ -1,10 +1,10 @@
 package com.example.restapiwithspring.events;
 
 import org.modelmapper.ModelMapper;
-import org.modelmapper.internal.Errors;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -18,16 +18,23 @@ public class EventController {
 
     private final EventRepository eventRepository;
     private final ModelMapper modelMapper;
+    private final EventVaildator eventVaildator;
 
 
-    public EventController(EventRepository eventRepository, ModelMapper modelMapper) {
+    public EventController(EventRepository eventRepository, ModelMapper modelMapper, EventVaildator eventVaildator) {
         this.eventRepository = eventRepository;
         this.modelMapper = modelMapper;
+        this.eventVaildator = eventVaildator;
     }
 
 
     @PostMapping
     public ResponseEntity createEvnet(@RequestBody @Valid EventDto eventDto, Errors errors) {
+        if(errors.hasErrors()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        eventVaildator.validate(eventDto, errors);
         if(errors.hasErrors()) {
             return ResponseEntity.badRequest().build();
         }
